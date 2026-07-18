@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Tryb Sumowania Binarnego z Transferem Zmysłów</title>
+<style>
+  .emocjaValue {
+    width:40px;
+    height:40px;
+    line-height:40px;
+    text-align:center;
+    font-size:22px;
+    font-family:monospace;
+  }
+  #asciiMap {
+    font-family: monospace;
+    font-size: 12px;
+    margin-top: 10px;
+    white-space: pre;
+  }
+</style>
+</head>
+<body>
+
+<h2>Tryb sumowania binarnego z transferem zmysłów</h2>
+
+Wejście A (Stan obecny mózgu - 8 bitów):<br>
+<input id="binA" value="10110011"><br>
+
+Wejście B (Nowy bodziec zewnętrzny - 8 bitów):<br>
+<input id="binB" value="01101111"><br>
+
+<button id="sumBtn">SUMUJ I INTERPRETUJ MÓZG</button>
+
+<p>SUMA BINARNA: <span id="sumOut"></span></p>
+<p>PRZENIESIENIE TRANSFERU MÓZGU: <span id="przeniesienieOut"></span></p>
+<p>HEX (Kod stanu): <span id="hexOut"></span></p>
+<p>CHROMOSOMY: <span id="chromosomeOut"></span></p>
+
+<!-- PANEL PO PRAWEJ: GRID 3×3 + ASCII + TEST EMOCJI -->
+<div style="float:right; margin-left:20px;">
+  <button id="emocjaOpenBtn">Otwórz Emocje</button>
+
+  <div id="emotionGrid" style="display:none; margin-top:10px;">
+    <table style="text-align:center;">
+      <tr>
+        <td><div class="emocjaValue" id="emocja7">0</div><hr/></td>
+        <td><div class="emocjaValue" id="emocja8">0</div><hr/></td>
+        <td><div class="emocjaValue" id="emocja9">0</div><hr/></td>
+      </tr>
+      <tr>
+        <td><div class="emocjaValue" id="emocja4">0</div><hr/></td>
+        <td><div class="emocjaValue" id="emocja5">0</div><hr/></td>
+        <td><div class="emocjaValue" id="emocja6">0</div><hr/></td>
+      </tr>
+      <tr>
+        <td><div class="emocjaValue" id="emocja1">0</div><hr/></td>
+        <td><div class="emocjaValue" id="emocja2">0</div><hr/></td>
+        <td><div class="emocjaValue" id="emocja3">0</div><hr/></td>
+      </tr>
+    </table>
+
+    <!-- ASCII WIZUALIZACJA ŚCIEŻKI CHROMOSOMÓW -->
+    <pre id="asciiMap">
+[7]   [8] ---> [9]
+ ^      ^       ^
+ |      |       |
+[4] -->[5]      |
+ ^              |
+ |              |
+[1]   [2] ------+
+
+Ścieżka: (brak danych)
+    </pre>
+  </div>
+
+  <!-- TEST EMOCJI PO PRAWEJ STRONIE -->
+  <div id="emotionTest" style="display:none; margin-top:20px; background:#eef; padding:10px;">
+    <h3>Test Emocji → Kod Binarny</h3>
+
+    Słuch (0/1):<br>
+    <input id="tSluch" value="0"><br>
+
+    Węch (0/1):<br>
+    <input id="tWech" value="0"><br>
+
+    Smak (0/1):<br>
+    <input id="tSmak" value="0"><br>
+
+    Czułość (0/1):<br>
+    <input id="tCzulosc" value="0"><br>
+
+    Emocje (0–15):<br>
+    <input id="tEmocje" value="0"><br><br>
+
+    <button id="genTestBtn">GENERUJ KOD BINARNY</button>
+
+    <p>Kod z testu: <span id="testBinOut"></span></p>
+  </div>
+</div>
+
+<h3>Raport Dekodowania Zmysłów (Wynik Sumowania):</h3>
+<div id="zmyslyRaport" style="background:#f0f0f0; padding:10px; font-family:monospace;">
+  Czekam na uruchomienie...
+</div>
+
+<script>
+let chromosomeCount = 1;
+
+function binaryToHex(binary) {
+  let hex = '';
+  for (let i = 0; i < binary.length; i += 4) {
+    let nibble = binary.substr(i, 4);
+    let decimal = parseInt(nibble, 2);
+    let hexChar = decimal.toString(16).toUpperCase();
+    hex += hexChar;
+  }
+  return hex;
+}
+
+function interpretujZmysly(binString) {
+  const bity = binString.padStart(8, '0'); 
+
+  const sluch = bity[0] === '1' ? "AKTYWNY (Słyszy) Chromosom 1" : "CISZA Chromosom 2";
+  const wech = bity[1] === '1' ? "AKTYWNY (Czuje zapach) Chromosom 3" : "BRAK ZAPACHU Chromosom 4";
+  const smak = bity[2] === '1' ? "AKTYWNY (Czuje smak) Chromosom 5" : "BRAK SMAKU Chromosom 6";
+  const czulosc = bity[3] === '1' ? "WYSOKA CZUŁOŚĆ Chromosom 7" : "NISKA CZUŁOŚĆ Chromosom 8";
+
+  const emocjeBity = bity.substring(4, 8);
+  const emocjeDec = parseInt(emocjeBity, 2);
+
+  let emocjaNazwa = "Neutralna Chromosom 9";
+  if (emocjeDec > 0 && emocjeDec <= 3) emocjaNazwa = "Radość / Ekscytacja Chromosom 9";
+  if (emocjeDec > 3 && emocjeDec <= 7) emocjaNazwa = "Smutek / Melancholia Chromosom 10";
+  if (emocjeDec > 7 && emocjeDec <= 11) emocjaNazwa = "Złość / Agresja Chromosom 11";
+  if (emocjeDec > 11) emocjaNazwa = "Strach / Niepokój Chromosom 12";
+
+  return `
+    <strong>Słuch:</strong> ${sluch}<br>
+    <strong>Węch:</strong> ${wech}<br>
+    <strong>Smak:</strong> ${smak}<br>
+    <strong>Czułość:</strong> ${czulosc}<br>
+    <strong>Emocje (Wartość ${emocjeDec}):</strong> ${emocjaNazwa}
+  `;
+}
+
+document.getElementById("sumBtn").onclick = () => {
+  const A = [...document.getElementById("binA").value].map(x => +x);
+  const B = [...document.getElementById("binB").value].map(x => +x);
+
+  const len = Math.max(A.length, B.length);
+
+  while (A.length < len) A.unshift(0);
+  while (B.length < len) B.unshift(0);
+
+  let SUM = [];
+  let carry = [0];
+
+  for (let i = len - 1; i >= 0; i--) {
+    const bitSum = A[i] + B[i] + carry[0];
+    SUM.unshift(bitSum % 2);
+    carry.unshift(Math.floor(bitSum / 2));
+  }
+
+  const sumStr = SUM.join('');
+  const hex = binaryToHex(sumStr);
+
+  document.getElementById("sumOut").textContent = sumStr;
+  document.getElementById("przeniesienieOut").textContent = carry.slice(0, -1).join('');
+  document.getElementById("hexOut").textContent = hex;
+  document.getElementById("chromosomeOut").textContent = chromosomeCount;
+
+  document.getElementById("zmyslyRaport").innerHTML = interpretujZmysly(sumStr);
+
+  if (hex.length > 1) chromosomeCount++;
+
+  aktualizujGridChromosomow();
+};
+
+document.getElementById("emocjaOpenBtn").onclick = () => {
+  document.getElementById("emocjaOpenBtn").style.display = "none";
+  document.getElementById("emotionGrid").style.display = "block";
+  document.getElementById("emotionTest").style.display = "block";
+  aktualizujGridChromosomow();
+};
+
+function aktualizujGridChromosomow() {
+  const raport = document.getElementById("zmyslyRaport").innerHTML;
+
+  const chromosomy = [...raport.matchAll(/Chromosom (\d+)/g)].map(m => parseInt(m[1]));
+
+  while (chromosomy.length < 9) chromosomy.push(chromosomy[chromosomy.length - 1]);
+
+  for (let i = 0; i < 9; i++) {
+    document.getElementById(`emocja${i+1}`).textContent = chromosomy[i];
+  }
+
+  const sciezka = chromosomy.slice(0, 5).join(' → ');
+  const asciiBase =
+`[7]   [8] ---> [9]
+ ^      ^       ^
+ |      |       |
+[4] -->[5]      |
+ ^              |
+ |              |
+[1]   [2] ------+
+
+Ścieżka: ${sciezka}
+`;
+  document.getElementById("asciiMap").textContent = asciiBase;
+}
+
+document.getElementById("genTestBtn").onclick = () => {
+  const sluch = document.getElementById("tSluch").value;
+  const wech = document.getElementById("tWech").value;
+  const smak = document.getElementById("tSmak").value;
+  const czulosc = document.getElementById("tCzulosc").value;
+
+  let emocje = parseInt(document.getElementById("tEmocje").value);
+  if (emocje < 0) emocje = 0;
+  if (emocje > 15) emocje = 15;
+
+  const emocjeBin = emocje.toString(2).padStart(4, '0');
+
+  const wynik = sluch + wech + smak + czulosc + emocjeBin;
+
+  document.getElementById("testBinOut").textContent = wynik;
+
+  document.getElementById("binA").value = wynik;
+};
+</script>
+
+</body>
+</html>
