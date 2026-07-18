@@ -1,0 +1,1712 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>DNA Computer + ATGCU CPU</title>
+<style>
+#dnaFlowInfo {
+  margin-top: 20px;
+  color: #ddd;
+  font-size: 14px;
+}
+
+#dnaFlowInfo h3 {
+  margin: 10px 0 5px;
+  font-size: 15px;
+  color: #fff;
+}
+
+#dnaBinaryList {
+  max-height: 200px;
+  overflow-y: auto;
+  border-top: 1px solid #444;
+  padding-top: 5px;
+}
+
+
+/* Lewy panel DNA Flow */
+#dnaFlowPanel {
+  position: fixed;
+  top: 0;
+  left: -350px;
+  width: 350px;
+  height: 100%;
+  background: #222;
+  border-right: 2px solid #444;
+  transition: left 0.35s ease;
+  padding: 10px;
+  z-index: 9999;
+}
+
+#dnaFlowPanel.open {
+  left: 0;
+}
+
+#dnaFlowToggle {
+  position: fixed;
+  top: 20px;
+  left: 0;
+  z-index: 10000;
+  background: #333;
+  color: #fff;
+  border: 1px solid #555;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+
+  #chromClockBox { position: fixed; top: 10px; left: 10px; background: rgba(0,0,0,0.7); padding: 10px 16px; border: 1px solid #555; border-radius: 8px; color: #0f0; font-family: monospace; font-size: 18px; z-index: 100; text-align: right; } #chromClockTime { font-size: 20px; margin-bottom: 4px; } #chromClockChrom { font-size: 18px; }
+  body { background:#111; color:#fff; font-family:Arial; margin:0; overflow:hidden; }
+  canvas { background:#222; margin-top:20px; border:1px solid #555; display:block; margin-left:auto; margin-right:auto; }
+
+  /* Panel po prawej */
+  #sidePanel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 380px;
+    height: 100vh;
+    background: #222;
+    border-left: 2px solid #555;
+    transform: translateX(100%);
+    transition: 0.3s ease;
+    padding: 15px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    z-index: 20;
+  }
+  #sidePanel.open {
+    transform: translateX(0);
+  }
+  #togglePanelBtn {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background:#444;
+    color:#fff;
+    border:1px solid #777;
+    padding:8px 12px;
+    cursor:pointer;
+    z-index: 21;
+  }
+
+  #calcInput, #atgcuSumList {
+    width:100%;
+    padding:8px;
+    background:#111;
+    color:#fff;
+    border:1px solid #555;
+    margin-bottom:10px;
+    box-sizing:border-box;
+  }
+
+  #calcBtn, .panel-btn {
+    width:100%;
+    padding:10px;
+    background:#0a0;
+    color:#fff;
+    border:none;
+    cursor:pointer;
+    margin-bottom:10px;
+  }
+  #calcBtn:hover, .panel-btn:hover {
+    background:#0c0;
+  }
+
+  #calcResult, #chromInfo, #atgcuResult {
+    white-space:pre-wrap;
+    font-family:monospace;
+    font-size:14px;
+  }
+
+  .section-title {
+    margin-top:15px;
+    margin-bottom:5px;
+    font-weight:bold;
+    font-size:16px;
+  }
+
+  .atgcu-row {
+    display:flex;
+    gap:5px;
+    margin-bottom:10px;
+    flex-wrap:wrap;
+  }
+
+  .atgcu-btn {
+    flex:1;
+    min-width:50px;
+    padding:6px;
+    background:#333;
+    border:1px solid #666;
+    color:#fff;
+    cursor:pointer;
+    text-align:center;
+    font-size:14px;
+  }
+
+  .atgcu-btn.selected {
+    background:#0a0;
+    border-color:#0f0;
+  }
+
+  /* Grid chromosomów 1–27 */
+  #chromGridWrapper {
+    margin-top:10px;
+    text-align:center;
+  }
+  #chromGrid {
+    display:grid;
+    grid-template-columns:repeat(9, 40px);
+    gap:6px;
+    justify-content:center;
+    margin-top:5px;
+  }
+  .chrom-btn {
+    padding:6px;
+    background:#222;
+    border:1px solid #555;
+    border-radius:4px;
+    cursor:pointer;
+    font-size:14px;
+  }
+  .chrom-btn:hover {
+    background:#333;
+    border-color:#aaa;
+  }
+  .chrom-btn.selected {
+    background:#555;
+    border-color:#0f0;
+  }
+  /* PANEL WYSUWANY Z DOŁU */
+#bottomPanel {
+  position: fixed;
+  bottom: -320px;
+  left: 0;
+  width: 100%;
+  height: 320px;
+  background: #111;
+  border-top: 2px solid #444;
+  transition: bottom 0.35s ease;
+  z-index: 9999;
+  padding: 10px;
+  color: #fff;
+  font-family: monospace;
+}
+
+#bottomPanel.open {
+  bottom: 0;
+}
+
+#bottomPanelHeader {
+  background: #222;
+  padding: 8px;
+  border-bottom: 1px solid #444;
+  cursor: pointer;
+  font-weight: bold;
+  text-align: center;
+}
+
+#bottomPanelInput {
+  width: 100%;
+  height: 120px;
+  background: #000;
+  color: #0f0;
+  border: 1px solid #333;
+  padding: 8px;
+  margin-top: 10px;
+  font-family: monospace;
+}
+
+#bottomPanelRun {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background: #333;
+  color: #fff;
+  border: 1px solid #555;
+  cursor: pointer;
+}
+
+#bottomPanelOutput {
+  margin-top: 10px;
+  background: #000;
+  padding: 8px;
+  border: 1px solid #333;
+  height: 60px;
+  overflow-y: auto;
+  color: #0f0;
+}
+
+/* PRZYCISK OTWIERAJĄCY PANEL */
+#bottomPanelToggle {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background: #333;
+  color: #fff;
+  border: 1px solid #555;
+  padding: 8px 14px;
+  cursor: pointer;
+  z-index: 10000;
+}
+
+</style>
+</head>
+<body>
+  <button id="dnaFlowToggle">DNA Flow ▶</button>
+
+<div id="dnaFlowPanel">
+  <canvas id="dnaFlowCanvas" width="350" height="720"></canvas>
+  <div id="dnaFlowInfo">
+  <h3>Przepływ nukleotydów</h3>
+  <div id="dnaFlowStats">Ładowanie...</div>
+
+  <h3>Aktywne chromosomy</h3>
+  <div id="dnaActiveChrom">Brak danych</div>
+
+  <h3>Kody binarne chromosomów</h3>
+  <div id="dnaBinaryList"></div>
+</div>
+
+</div>
+
+<div id="chromClockBox"> <div id="chromClockTime">--:--:--</div><div id="chromClockATGCU">ATGCU: --</div> <div id="chromClockChrom">Chromosom: --</div> </div>
+<button id="togglePanelBtn">Panel ▶</button>
+
+<div id="sidePanel">
+  <h2>Panel DNA / ATGCU</h2>
+
+  <div class="section-title">Sumowanie chromosomów (stary tryb)</div>
+  <p>Wpisz ID chromosomów (np. <b>1 2 5</b>):</p>
+  <input id="calcInput" type="text" placeholder="np. 1 2 5">
+  <button id="calcBtn">OBLICZ</button>
+  <div id="calcResult"></div>
+
+  <div class="section-title">Chromosomy 1–27</div>
+  <div id="chromGridWrapper">
+    <div id="chromGrid"></div>
+  </div>
+
+  <div class="section-title">Informacje o chromosomie</div>
+  <div id="chromInfo">Kliknij chromosom 1–27.</div>
+
+  <div class="section-title">Rejestry ATGCU</div>
+  <div class="atgcu-row">
+    <button class="atgcu-btn" id="btnA">A</button>
+    <button class="atgcu-btn" id="btnC">C</button>
+    <button class="atgcu-btn" id="btnG">G</button>
+    <button class="atgcu-btn" id="btnT">T</button>
+    <button class="atgcu-btn" id="btnU">U</button>
+  </div>
+
+  <div id="atgcuSelected">Wybrany nukleotyd: brak</div>
+
+  <div class="section-title">Operacje</div>
+  <button class="panel-btn" id="setRegBtn">Ustaw rejestr chromosomu</button>
+  <button class="panel-btn" id="addToSumBtn">Dodaj do sumowania</button>
+  <button class="panel-btn" id="clearSumBtn">Wyczyść sumę</button>
+
+  <!-- NOWE PRZYCISKI RESET -->
+  <button class="panel-btn" id="resetChromBtn">Reset wyboru chromosomu</button>
+  <button class="panel-btn" id="resetATGCU">Reset ATGCU</button>
+
+  <textarea id="atgcuSumList" rows="3" readonly placeholder="Dodane nukleotydy / wartości..."></textarea>
+
+  <div class="section-title">Wynik ATGCU</div>
+  <div id="atgcuResult">Brak obliczeń.</div>
+</div>
+
+<h1 style="text-align:center;">DNA Computer – 27 Chromosomów (Rozstawione)</h1>
+<canvas id="dnaCanvas" width="1600" height="1000"></canvas>
+<button id="bottomPanelToggle">Terminal ▼</button>
+
+<div id="bottomPanel">
+  <div id="bottomPanelHeader">Terminal DNA</div>
+
+  <textarea id="bottomPanelInput" placeholder="Wpisz komendy..."></textarea>
+
+  <button id="bottomPanelRun">Wykonaj</button>
+
+  <div id="bottomPanelOutput"></div>
+</div>
+
+<script>
+
+// ===============================
+//   MODEL
+// ===============================
+class Chromosome {
+  constructor(id, x, y) {
+    this.id = id;
+    this.state = 0;
+    this.inputs = [];
+    this.outputs = [];
+    this.x = x;
+    this.y = y;
+    this.highlight = false;      // czerwony
+    this.highlightBlue = false;  // niebieski (wynik)
+    this.order = 0;              // numer kolejności
+    this.nucleotide = null;      // A/C/G/T/U (dla trybu CPU)
+  }
+}
+
+class Connection {
+  constructor(from, to) {
+    this.from = from;
+    this.to = to;
+  }
+}
+
+class DnaGrid {
+  constructor() {
+    this.chromosomes = new Map();
+    this.connections = [];
+  }
+
+  addChromosome(id, x, y) {
+    const chr = new Chromosome(id, x, y);
+    this.chromosomes.set(id, chr);
+    return chr;
+  }
+
+  connect(a, b) {
+    this.connections.push(new Connection(a, b));
+    this.chromosomes.get(a).outputs.push(b);
+    this.chromosomes.get(b).inputs.push(a);
+  }
+
+  setState(id, value) {
+    this.chromosomes.get(id).state = value;
+  }
+
+  computeNextState(id) {
+    const chr = this.chromosomes.get(id);
+    let sum = 0;
+    for (const inputId of chr.inputs) {
+      sum += this.chromosomes.get(inputId).state;
+    }
+    return sum > 0 ? 1 : 0;
+  }
+
+  tick() {
+    const newStates = new Map();
+    for (const [id] of this.chromosomes) {
+      newStates.set(id, this.computeNextState(id));
+    }
+    for (const [id, chr] of this.chromosomes) {
+      chr.state = newStates.get(id);
+    }
+  }
+}
+
+// ===============================
+//   TWORZENIE SIATKI
+// ===============================
+const grid = new DnaGrid();
+const canvas = document.getElementById("dnaCanvas");
+const ctx = canvas.getContext("2d");
+
+// JĄDRO KOMÓRKOWE
+const nucleusX = 800;
+const nucleusY = 500;
+const nucleusRadius = 25;
+
+grid.addChromosome(0, nucleusX, nucleusY);
+
+// FUNKCJA DO USTAWIANIA GRUP
+function placeGroup(ids, startX, startY) {
+  let offset = 0;
+  for (const id of ids) {
+    if (!grid.chromosomes.has(id)) {
+      grid.addChromosome(id, startX + offset, startY);
+    }
+    offset += 80;
+  }
+}
+
+// LEWA STRONA
+placeGroup([1,2,3], 200, 150);
+placeGroup([1,4,5], 200, 250);
+
+placeGroup([6,7,8], 200, 450);
+placeGroup([6,9,10], 200, 550);
+
+placeGroup([11,12,13], 200, 750);
+placeGroup([11,14,15], 200, 850);
+
+// PRAWA STRONA
+placeGroup([16,17,18], 1100, 150);
+placeGroup([16,19,20], 1100, 250);
+
+placeGroup([21,22,23], 1100, 450);
+placeGroup([21,24,25,26,27], 1100, 550);
+
+// ===============================
+//   POŁĄCZENIA
+// ===============================
+grid.connect(1, 2);
+grid.connect(2, 3);
+
+grid.connect(1, 4);
+grid.connect(4, 5);
+
+grid.connect(6, 7);
+grid.connect(7, 8);
+grid.connect(6, 8);
+
+grid.connect(6, 9);
+grid.connect(9, 10);
+
+grid.connect(11, 12);
+grid.connect(12, 13);
+grid.connect(11, 13);
+
+grid.connect(11, 14);
+grid.connect(14, 15);
+
+grid.connect(16, 17);
+grid.connect(17, 18);
+grid.connect(16, 18);
+
+grid.connect(16, 19);
+grid.connect(19, 20);
+
+grid.connect(21, 22);
+grid.connect(22, 23);
+grid.connect(21, 23);
+
+grid.connect(21, 24);
+grid.connect(24, 25);
+grid.connect(25, 26);
+grid.connect(26, 27);
+
+// JĄDRO
+grid.connect(0, 1);
+grid.connect(0, 6);
+grid.connect(0, 11);
+grid.connect(0, 16);
+grid.connect(0, 21);
+
+// STARTOWE STANY
+grid.setState(1, 1);
+grid.setState(21, 1);
+
+// ===============================
+//   MAPA BINARNA I LITEROWA
+// ===============================
+const binaryMap = {
+  1:"1", 2:"10", 3:"11", 4:"100", 5:"101",
+  6:"110", 7:"111", 8:"1000", 9:"1001", 10:"1010",
+  11:"1011", 12:"1100", 13:"1101", 14:"1110", 15:"1111",
+  16:"10000", 17:"10001", 18:"10010", 19:"10011", 20:"10100",
+  21:"10101", 22:"10110", 23:"10111", 24:"11000", 25:"11001",
+  26:"11010", 27:"11011"
+};
+
+const letterMap = {
+  1:"a",2:"b",3:"c",4:"d",5:"e",6:"f",7:"g",8:"h",9:"i",10:"j",
+  11:"k",12:"l",13:"m",14:"n",15:"o",16:"p",17:"q",18:"r",19:"s",
+  20:"t",21:"u",22:"v",23:"w",24:"x",25:"y",26:"z",27:"?"
+};
+
+// ATGCU wartości
+const nucleotideValues = {
+  A: 1,
+  C: 3,
+  G: 7,
+  T: 32,
+  U: 33
+};
+
+// ===============================
+//   RYSOWANIE
+// ===============================
+function drawNucleus() {
+  ctx.beginPath();
+  ctx.arc(nucleusX, nucleusY, nucleusRadius, 0, Math.PI * 2);
+  ctx.fillStyle = "#0ff";
+  ctx.fill();
+  ctx.strokeStyle = "#fff";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.fillStyle = "#000";
+  ctx.font = "14px Arial";
+  ctx.fillText("N", nucleusX - 5, nucleusY + 5);
+}
+
+function drawGrid() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  drawNucleus();
+
+  ctx.strokeStyle = "#0f0";
+  ctx.lineWidth = 2;
+  for (const conn of grid.connections) {
+    const a = grid.chromosomes.get(conn.from);
+    const b = grid.chromosomes.get(conn.to);
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.stroke();
+  }
+
+  for (const [id, chr] of grid.chromosomes) {
+    const bin = binaryMap[id] || "?";
+    const dec = id;
+    const letter = letterMap[id] || "?";
+
+    ctx.fillStyle = "#0ff";
+    ctx.font = "14px Arial";
+    ctx.fillText(bin, chr.x - (bin.length * 3), chr.y - 40);
+
+    ctx.fillStyle = "#aaa";
+    ctx.font = "12px Arial";
+    ctx.fillText(`(${dec} → ${letter})`, chr.x - 20, chr.y - 25);
+
+    if (chr.order > 0) {
+      ctx.fillStyle = "#ff0000";
+      ctx.font = "22px Arial";
+      ctx.fillText(chr.order, chr.x - 5, chr.y - 60);
+    }
+
+    ctx.beginPath();
+    ctx.arc(chr.x, chr.y, 25, 0, Math.PI * 2);
+
+    if (chr.highlightBlue) {
+      ctx.fillStyle = "#00aaff";
+    } else if (chr.highlight) {
+      ctx.fillStyle = "#f00";
+    } else {
+      ctx.fillStyle = chr.state ? "#0f0" : "#444";
+    }
+
+    ctx.fill();
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.fillStyle = "#fff";
+    ctx.font = "16px Arial";
+    ctx.fillText(id, chr.x - 5, chr.y + 5);
+  }
+}
+
+// ===============================
+//   ANIMACJA
+// ===============================
+function loop() {
+  grid.tick();
+  drawGrid();
+  requestAnimationFrame(loop);
+}
+
+drawGrid();
+loop();
+
+// ===============================
+//   PANEL WYSUWANY
+// ===============================
+const panel = document.getElementById("sidePanel");
+const toggleBtn = document.getElementById("togglePanelBtn");
+
+toggleBtn.onclick = () => {
+  panel.classList.toggle("open");
+  toggleBtn.textContent = panel.classList.contains("open") ? "Panel ◀" : "Panel ▶";
+};
+
+// ===============================
+//   SUMOWANIE BINARNE (stary tryb)
+// ===============================
+function sumBinary(values) {
+  const maxLen = Math.max(...values.map(v => v.length));
+  const padded = values.map(v => v.padStart(maxLen, "0"));
+
+  let carry = 0;
+  let result = "";
+
+  for (let i = maxLen - 1; i >= 0; i--) {
+    let sum = carry;
+    for (const v of padded) sum += Number(v[i]);
+    result = (sum % 2) + result;
+    carry = Math.floor(sum / 2);
+  }
+
+  if (carry > 0) result = carry + result;
+  return result.replace(/^0+/, "") || "0";
+}
+
+document.getElementById("calcBtn").onclick = () => {
+  const input = document.getElementById("calcInput").value.trim();
+  if (!input) return;
+
+  for (const [id, chr] of grid.chromosomes) {
+    chr.highlight = false;
+    chr.highlightBlue = false;
+    chr.order = 0;
+  }
+
+  const ids = input.split(" ").map(n => parseInt(n)).filter(n => !isNaN(n));
+
+  ids.forEach((id, index) => {
+    if (grid.chromosomes.has(id)) {
+      const chr = grid.chromosomes.get(id);
+      chr.highlight = true;
+      chr.order = index + 1;
+    }
+  });
+
+  const binaries = ids.map(id => binaryMap[id] || "0");
+  const letters = ids.map(id => letterMap[id] || "?");
+
+  let desc = "";
+  for (let i = 0; i < ids.length; i++) {
+    desc += `${ids[i]} (${binaries[i]} → ${letters[i]})`;
+    if (i < ids.length - 1) desc += " + ";
+  }
+
+  const resultBin = sumBinary(binaries);
+  const resultDec = parseInt(resultBin, 2);
+  const resultLetter = letterMap[resultDec] || "?";
+
+  const resultLine = `<span style="color:#4af;">= ${resultBin} (${resultDec}) → ${resultLetter}</span>`;
+
+  document.getElementById("calcResult").innerHTML = desc + "<br>" + resultLine;
+
+  if (grid.chromosomes.has(resultDec)) {
+    grid.chromosomes.get(resultDec).highlightBlue = true;
+  }
+};
+
+// ===============================
+//   GRID 1–27 + PANEL INFORMACJI
+// ===============================
+const chromGrid = document.getElementById("chromGrid");
+let selectedChromId = null;
+let selectedChromBtn = null;
+
+for (let i = 1; i <= 27; i++) {
+  const btn = document.createElement("button");
+  btn.className = "chrom-btn";
+  btn.textContent = i;
+  btn.onclick = () => selectChromosome(i, btn);
+  chromGrid.appendChild(btn);
+}
+
+function selectChromosome(n, btnEl) {
+  selectedChromId = n;
+
+  if (selectedChromBtn) selectedChromBtn.classList.remove("selected");
+  selectedChromBtn = btnEl;
+  if (selectedChromBtn) selectedChromBtn.classList.add("selected");
+
+  const chr = grid.chromosomes.get(n);
+  const bin = binaryMap[n] || "?";
+  const letter = letterMap[n] || "?";
+  const nuc = chr.nucleotide || "brak";
+
+  const inputs = chr.inputs.join(", ") || "brak";
+  const outputs = chr.outputs.join(", ") || "brak";
+
+  const info =
+    `ID: ${n}\n` +
+    `Binarnie: ${bin}\n` +
+    `Litera: ${letter}\n` +
+    `Stan: ${chr.state}\n` +
+    `Wejścia: ${inputs}\n` +
+    `Wyjścia: ${outputs}\n` +
+    `Rejestr nukleotydu: ${nuc}`;
+
+  document.getElementById("chromInfo").textContent = info;
+}
+
+// ===============================
+//   ATGCU CPU – PANEL
+// ===============================
+let selectedNucleotide = null;
+let atgcuSum = [];
+
+const btnA = document.getElementById("btnA");
+const btnC = document.getElementById("btnC");
+const btnG = document.getElementById("btnG");
+const btnT = document.getElementById("btnT");
+const btnU = document.getElementById("btnU");
+const atgcuButtons = [btnA, btnC, btnG, btnT, btnU];
+
+function setSelectedNucleotide(nuc) {
+  selectedNucleotide = nuc;
+  atgcuButtons.forEach(b => b.classList.remove("selected"));
+  if (nuc === "A") btnA.classList.add("selected");
+  if (nuc === "C") btnC.classList.add("selected");
+  if (nuc === "G") btnG.classList.add("selected");
+  if (nuc === "T") btnT.classList.add("selected");
+  if (nuc === "U") btnU.classList.add("selected");
+
+  const val = nuc ? nucleotideValues[nuc] : null;
+  document.getElementById("atgcuSelected").textContent =
+    nuc ? `Wybrany nukleotyd: ${nuc} (wartość: ${val})` : "Wybrany nukleotyd: brak";
+}
+
+btnA.onclick = () => setSelectedNucleotide("A");
+btnC.onclick = () => setSelectedNucleotide("C");
+btnG.onclick = () => setSelectedNucleotide("G");
+btnT.onclick = () => setSelectedNucleotide("T");
+btnU.onclick = () => setSelectedNucleotide("U");
+
+// Ustaw rejestr chromosomu
+document.getElementById("setRegBtn").onclick = () => {
+  if (!selectedChromId) return;
+  if (!selectedNucleotide) return;
+
+  const chr = grid.chromosomes.get(selectedChromId);
+  chr.nucleotide = selectedNucleotide;
+
+  selectChromosome(selectedChromId, selectedChromBtn);
+};
+
+// Dodaj do sumowania
+document.getElementById("addToSumBtn").onclick = () => {
+  if (!selectedNucleotide) return;
+
+  const val = nucleotideValues[selectedNucleotide];
+  atgcuSum.push({ nuc: selectedNucleotide, val });
+
+  updateAtgcuSumDisplay();
+  computeAtgcuResult();
+};
+
+// Wyczyść sumę (tylko lista + wynik, bez resetu nukleotydu)
+document.getElementById("clearSumBtn").onclick = () => {
+  atgcuSum = [];
+  updateAtgcuSumDisplay();
+  document.getElementById("atgcuResult").textContent = "Brak obliczeń.";
+
+  for (const [id, chr] of grid.chromosomes) {
+    chr.highlightBlue = false;
+  }
+};
+
+function updateAtgcuSumDisplay() {
+  const area = document.getElementById("atgcuSumList");
+  if (atgcuSum.length === 0) {
+    area.value = "";
+    return;
+  }
+  const lines = atgcuSum.map((e, idx) => `${idx+1}. ${e.nuc} = ${e.val}`);
+  area.value = lines.join("\n");
+}
+
+function computeAtgcuResult() {
+  if (atgcuSum.length === 0) return;
+
+  let total = 0;
+  for (const e of atgcuSum) total += e.val;
+
+  const bin = total.toString(2);
+  const dec = total;
+  const letter = letterMap[dec] || "?";
+
+  for (const [id, chr] of grid.chromosomes) {
+    chr.highlightBlue = false;
+  }
+  if (grid.chromosomes.has(dec)) {
+    grid.chromosomes.get(dec).highlightBlue = true;
+  }
+
+  document.getElementById("atgcuResult").textContent =
+    `Suma wartości: ${total}\n` +
+    `Binarnie: ${bin}\n` +
+    `Dziesiętnie: ${dec}\n` +
+    `Litera (jeśli w zakresie 1–27): ${letter}`;
+}
+
+// ===============================
+//   RESET WYBORU CHROMOSOMU
+// ===============================
+function resetChromosomeSelection() {
+  if (selectedChromBtn) selectedChromBtn.classList.remove("selected");
+  selectedChromBtn = null;
+  selectedChromId = null;
+  document.getElementById("chromInfo").textContent = "Kliknij chromosom 1–27.";
+}
+
+document.getElementById("resetChromBtn").onclick = resetChromosomeSelection;
+
+function resetATGCU() {
+  selectedNucleotide = null;
+  atgcuSum = [];
+
+  atgcuButtons.forEach(b => b.classList.remove("selected"));
+  document.getElementById("atgcuSelected").textContent = "Wybrany nukleotyd: brak";
+  document.getElementById("atgcuSumList").value = "";
+  document.getElementById("atgcuResult").textContent = "Brak obliczeń.";
+
+  for (const [id, chr] of grid.chromosomes) {
+    chr.highlightBlue = false;
+  }
+}
+
+document.getElementById("resetATGCU").onclick = resetATGCU;
+
+function letterToNucleotide(letter) {
+  if ("abcde".includes(letter)) return "A";
+  if ("fghij".includes(letter)) return "C";
+  if ("klmno".includes(letter)) return "G";
+  if ("pqrst".includes(letter)) return "T";
+  if ("uvwxyz".includes(letter)) return "U";
+  return null;
+}
+
+function updateChromClock() {
+  const now = new Date();
+
+  const h = now.getHours().toString().padStart(2,"0");
+  const m = now.getMinutes().toString().padStart(2,"0");
+  const s = now.getSeconds().toString().padStart(2,"0");
+  document.getElementById("chromClockTime").textContent = `${h}:${m}:${s}`;
+
+  const chromId = (now.getSeconds() % 26) + 1;
+  document.getElementById("chromClockChrom").textContent = `Chromosom: ${chromId}`;
+
+  const letter = letterMap[chromId] || "--";
+  const letterEl = document.getElementById("chromClockLetter");
+  if (letterEl) {
+    letterEl.textContent = `Litera: ${letter}`;
+  }
+
+  const nuc = letterToNucleotide(letter);
+  document.getElementById("chromClockATGCU").textContent = `ATGCU: ${nuc || "--"}`;
+}
+
+setInterval(updateChromClock, 1000);
+updateChromClock();
+// ===============================
+//   DNA FLOW PANEL (LEFT SIDE)
+// ===============================
+
+const dnaFlowPanel = document.getElementById("dnaFlowPanel");
+const dnaFlowToggle = document.getElementById("dnaFlowToggle");
+
+dnaFlowToggle.onclick = () => {
+  dnaFlowPanel.classList.toggle("open");
+  dnaFlowToggle.textContent = dnaFlowPanel.classList.contains("open")
+    ? "DNA Flow ◀"
+    : "DNA Flow ▶";
+};
+
+// ===============================
+//   DNA FLOW CANVAS SETUP
+// ===============================
+
+const dnaCanvas = document.getElementById("dnaFlowCanvas");
+const dnaCtx = dnaCanvas.getContext("2d");
+
+// Układ chromosomów (7 rzędów)
+const dnaRows = [
+  [1,2,3,4],
+  [5,6,7,8],
+  [9,10,11,12],
+  [13,14,15,16],
+  [17,18,19,20],
+  [21,22,23,24],
+  [25,26,27]
+];
+
+// Pozycje węzłów
+let dnaNodes = new Map();
+
+// Oblicz pozycje
+function computeDnaNodePositions() {
+  dnaNodes.clear();
+  const startX = 50;
+  const startY = 50;
+  const gapX = 80;
+  const gapY = 90;
+
+  for (let r = 0; r < dnaRows.length; r++) {
+    for (let c = 0; c < dnaRows[r].length; c++) {
+      const id = dnaRows[r][c];
+      dnaNodes.set(id, {
+        x: startX + c * gapX,
+        y: startY + r * gapY
+      });
+    }
+  }
+}
+
+computeDnaNodePositions();
+
+// ===============================
+//   GENEROWANIE POŁĄCZEŃ
+// ===============================
+
+let dnaConnections = [];
+
+function buildDnaConnections() {
+  dnaConnections = [];
+
+  // Poziome
+  for (const row of dnaRows) {
+    for (let i = 0; i < row.length - 1; i++) {
+      dnaConnections.push([row[i], row[i+1]]);
+    }
+  }
+
+  // Pionowe
+  for (let r = 0; r < dnaRows.length - 1; r++) {
+    const rowA = dnaRows[r];
+    const rowB = dnaRows[r+1];
+
+    const max = Math.min(rowA.length, rowB.length);
+    for (let i = 0; i < max; i++) {
+      dnaConnections.push([rowA[i], rowB[i]]);
+    }
+  }
+}
+
+buildDnaConnections();
+
+// ===============================
+//   ANIMACJA NUKLEOTYDÓW
+// ===============================
+
+function nucleotideByClock() {
+  const s = new Date().getSeconds() % 5;
+  return ["A","C","G","T","U"][s];
+}
+
+function nucleotideColor(n) {
+  return {
+    A: "#00ff00",
+    C: "#00aaff",
+    G: "#ffff00",
+    T: "#ff0000",
+    U: "#aa00ff"
+  }[n];
+}
+
+let dnaParticles = [];
+
+function spawnParticles() {
+  const nuc = nucleotideByClock();
+
+  dnaParticles = dnaConnections.map(([a,b]) => {
+    const A = dnaNodes.get(a);
+    const B = dnaNodes.get(b);
+
+    return {
+      x1: A.x, y1: A.y,
+      x2: B.x, y2: B.y,
+      progress: 0,
+      nuc
+    };
+  });
+}
+
+setInterval(spawnParticles, 1000);
+spawnParticles();
+
+// ===============================
+//   RYSOWANIE DNA FLOW
+// ===============================
+
+function drawDnaFlow() {
+  dnaCtx.clearRect(0,0,dnaCanvas.width,dnaCanvas.height);
+
+  // Linie
+  dnaCtx.strokeStyle = "#000";
+  dnaCtx.lineWidth = 2;
+
+  for (const [a,b] of dnaConnections) {
+    const A = dnaNodes.get(a);
+    const B = dnaNodes.get(b);
+
+    dnaCtx.beginPath();
+    dnaCtx.moveTo(A.x, A.y);
+    dnaCtx.lineTo(B.x, B.y);
+    dnaCtx.stroke();
+  }
+
+  // Węzły
+  for (const [id, pos] of dnaNodes) {
+    dnaCtx.fillStyle = "#fff";
+    dnaCtx.beginPath();
+    dnaCtx.arc(pos.x, pos.y, 12, 0, Math.PI*2);
+    dnaCtx.fill();
+
+    dnaCtx.strokeStyle = "#000";
+    dnaCtx.stroke();
+
+    dnaCtx.fillStyle = "#000";
+    dnaCtx.font = "12px Arial";
+    dnaCtx.textAlign = "center";
+    dnaCtx.textBaseline = "middle";
+    dnaCtx.fillText(id, pos.x, pos.y);
+  }
+
+  // Nukleotydy
+  for (const p of dnaParticles) {
+    p.progress += 0.02;
+    if (p.progress > 1) p.progress = 1;
+
+    const x = p.x1 + (p.x2 - p.x1) * p.progress;
+    const y = p.y1 + (p.y2 - p.y1) * p.progress;
+
+    dnaCtx.fillStyle = nucleotideColor(p.nuc);
+    dnaCtx.beginPath();
+    dnaCtx.arc(x, y, 5, 0, Math.PI*2);
+    dnaCtx.fill();
+  }
+
+  requestAnimationFrame(drawDnaFlow);
+}
+
+drawDnaFlow();
+
+
+drawDnaFlow();
+
+// ===============================
+//   DNA FLOW — STATYSTYKI
+// ===============================
+
+// Kody binarne chromosomów 1–27
+const dnaBinaryMap = {};
+for (let i = 1; i <= 27; i++) {
+  dnaBinaryMap[i] = i.toString(2).padStart(5, "0");
+}
+
+// Wyświetl listę binarną
+function renderBinaryList() {
+  const box = document.getElementById("dnaBinaryList");
+  let html = "";
+  for (let i = 1; i <= 27; i++) {
+    html += `Chromosom ${i}: <b>${dnaBinaryMap[i]}</b><br>`;
+  }
+  box.innerHTML = html;
+}
+renderBinaryList();
+
+// Statystyki przepływu
+let dnaFlowCounter = {
+  A: 0, C: 0, G: 0, T: 0, U: 0
+};
+
+// Aktualizacja statystyk co sekundę
+setInterval(() => {
+  const nuc = nucleotideByClock();
+  dnaFlowCounter[nuc]++;
+
+  document.getElementById("dnaFlowStats").innerHTML =
+    `A: ${dnaFlowCounter.A} &nbsp; 
+     C: ${dnaFlowCounter.C} &nbsp; 
+     G: ${dnaFlowCounter.G} &nbsp; 
+     T: ${dnaFlowCounter.T} &nbsp; 
+     U: ${dnaFlowCounter.U}`;
+}, 1000);
+
+// Aktywne chromosomy
+function updateActiveChromosomes() {
+  const active = new Set();
+
+  for (const p of dnaParticles) {
+    if (p.progress < 1) {
+      const [a, b] = dnaConnections[dnaParticles.indexOf(p)];
+      active.add(a);
+      active.add(b);
+    }
+  }
+
+  document.getElementById("dnaActiveChrom").textContent =
+    [...active].sort((a,b)=>a-b).join(", ") || "Brak";
+}
+
+setInterval(updateActiveChromosomes, 200);
+// PANEL WYSUWANY Z DOŁU
+const bottomPanel = document.getElementById("bottomPanel");
+const bottomToggle = document.getElementById("bottomPanelToggle");
+const bottomHeader = document.getElementById("bottomPanelHeader");
+
+bottomToggle.onclick = () => {
+  bottomPanel.classList.toggle("open");
+};
+
+bottomHeader.onclick = () => {
+  bottomPanel.classList.toggle("open");
+};
+// ===============================
+//   TERMINAL DNA — KOMENDY
+// ===============================
+function runTerminalCommand(cmd) {
+  const out = document.getElementById("bottomPanelOutput");
+
+  const parts = cmd.trim().split(" ");
+  const main = parts[0].toUpperCase();
+
+  // --- PODSTAWOWE KOMENDY ---
+  if (main === "HELP") {
+    out.textContent +=
+      "Dostępne komendy:\n" +
+      "HELP – lista komend\n" +
+      "CLEAR – wyczyść terminal\n" +
+      "PING – test działania\n" +
+      "TIME – aktualny czas\n" +
+      "NUC – nukleotyd zegara\n" +
+      "INFO X – informacje o chromosomie\n" +
+      "HIGHLIGHT X – podświetl chromosom (czerwony)\n" +
+      "BLUE X – podświetl chromosom (niebieski)\n" +
+      "STATE X Y – ustaw stan chromosomu (0/1)\n" +
+      "NUCSET X A/C/G/T/U – ustaw nukleotyd chromosomu\n" +
+      "RESETGRID – reset siatki chromosomów\n" +
+      "FLOW X – wyślij nukleotyd przez węzeł DNA-Flow\n" +
+      "COLOR X R G B – ustaw kolor węzła DNA-Flow\n" +
+      "CONNECT A B – połącz węzły DNA-Flow\n\n";
+  }
+
+  else if (main === "CLEAR") {
+    out.textContent = "";
+  }
+
+  else if (main === "PING") {
+    out.textContent += "PONG\n";
+  }
+
+  else if (main === "TIME") {
+    out.textContent += new Date().toLocaleTimeString() + "\n";
+  }
+
+  else if (main === "NUC") {
+    out.textContent += `Nukleotyd zegara: ${nucleotideByClock()}\n`;
+  }
+
+  // ===============================
+  //   SIATKA 27 CHROMOSOMÓW
+  // ===============================
+
+  else if (main === "INFO") {
+    const id = parseInt(parts[1]);
+    if (!grid.chromosomes.has(id)) {
+      out.textContent += `Chromosom ${id} nie istnieje\n`;
+      return;
+    }
+
+    const chr = grid.chromosomes.get(id);
+    const bin = binaryMap[id] || "?";
+    const letter = letterMap[id] || "?";
+    const nuc = chr.nucleotide || "brak";
+
+    out.textContent +=
+      `ID: ${id}\n` +
+      `Binarnie: ${bin}\n` +
+      `Litera: ${letter}\n` +
+      `Stan: ${chr.state}\n` +
+      `Wejścia: ${chr.inputs.join(", ") || "brak"}\n` +
+      `Wyjścia: ${chr.outputs.join(", ") || "brak"}\n` +
+      `Nukleotyd: ${nuc}\n\n`;
+  }
+
+  else if (main === "HIGHLIGHT") {
+    const id = parseInt(parts[1]);
+    if (!grid.chromosomes.has(id)) {
+      out.textContent += `Chromosom ${id} nie istnieje\n`;
+      return;
+    }
+
+    for (const [cid, chr] of grid.chromosomes) chr.highlight = false;
+    grid.chromosomes.get(id).highlight = true;
+
+    out.textContent += `Podświetlono chromosom ${id}\n`;
+  }
+
+  else if (main === "BLUE") {
+    const id = parseInt(parts[1]);
+    if (!grid.chromosomes.has(id)) {
+      out.textContent += `Chromosom ${id} nie istnieje\n`;
+      return;
+    }
+
+    for (const [cid, chr] of grid.chromosomes) chr.highlightBlue = false;
+    grid.chromosomes.get(id).highlightBlue = true;
+
+    out.textContent += `Podświetlono chromosom ${id} (niebieski)\n`;
+  }
+
+  else if (main === "STATE") {
+    const id = parseInt(parts[1]);
+    const val = parseInt(parts[2]);
+
+    if (!grid.chromosomes.has(id)) {
+      out.textContent += `Chromosom ${id} nie istnieje\n`;
+      return;
+    }
+
+    if (val !== 0 && val !== 1) {
+      out.textContent += "Stan musi być 0 lub 1\n";
+      return;
+    }
+
+    grid.chromosomes.get(id).state = val;
+    out.textContent += `Ustawiono stan chromosomu ${id} na ${val}\n`;
+  }
+
+  else if (main === "NUCSET") {
+    const id = parseInt(parts[1]);
+    const nuc = parts[2]?.toUpperCase();
+
+    if (!grid.chromosomes.has(id)) {
+      out.textContent += `Chromosom ${id} nie istnieje\n`;
+      return;
+    }
+
+    if (!["A","C","G","T","U"].includes(nuc)) {
+      out.textContent += "Nukleotyd musi być A/C/G/T/U\n";
+      return;
+    }
+
+    grid.chromosomes.get(id).nucleotide = nuc;
+    out.textContent += `Ustawiono nukleotyd chromosomu ${id} na ${nuc}\n`;
+  }
+
+  else if (main === "RESETGRID") {
+    for (const [id, chr] of grid.chromosomes) {
+      chr.highlight = false;
+      chr.highlightBlue = false;
+      chr.order = 0;
+      chr.nucleotide = null;
+    }
+
+    out.textContent += "Zresetowano siatkę chromosomów\n";
+  }
+// ===============================
+//   SCRIPT / END
+// ===============================
+
+else if (main === "SCRIPT") {
+  window.dnaScriptMode = true;
+  window.dnaScriptBuffer = [];
+  out.textContent += "Tryb SCRIPT rozpoczęty. Wpisuj komendy...\n";
+}
+
+else if (main === "END") {
+  if (!window.dnaScriptMode) {
+    out.textContent += "Nie jesteś w trybie SCRIPT\n";
+    return;
+  }
+
+  out.textContent += "Wykonywanie programu...\n";
+
+  for (const line of window.dnaScriptBuffer) {
+    out.textContent += "> " + line + "\n";
+    runTerminalCommand(line);
+  }
+
+  window.dnaScriptMode = false;
+  window.dnaScriptBuffer = [];
+  out.textContent += "Program zakończony.\n\n";
+  return;
+}
+
+// Jeśli jesteśmy w trybie SCRIPT — tylko zapisujemy linie
+if (window.dnaScriptMode) {
+  window.dnaScriptBuffer.push(cmd);
+  return;
+}
+
+  // ===============================
+  //   DNA FLOW
+  // ===============================
+
+  else if (main === "FLOW") {
+    const id = parseInt(parts[1]);
+    if (!dnaNodes.has(id)) {
+      out.textContent += `Nie ma węzła ${id}\n`;
+      return;
+    }
+
+    dnaParticles.push({
+      x1: dnaNodes.get(id).x,
+      y1: dnaNodes.get(id).y,
+      x2: dnaNodes.get(id).x,
+      y2: dnaNodes.get(id).y - 20,
+      progress: 0,
+      nuc: nucleotideByClock()
+    });
+
+    out.textContent += `Wysłano nukleotyd przez ${id}\n`;
+  }
+
+  else if (main === "COLOR") {
+    const id = parseInt(parts[1]);
+    const r = parts[2], g = parts[3], b = parts[4];
+
+    if (!dnaNodes.has(id)) {
+      out.textContent += `Nie ma węzła ${id}\n`;
+      return;
+    }
+
+    dnaNodes.get(id).color = `rgb(${r},${g},${b})`;
+    out.textContent += `Kolor ${id} ustawiony\n`;
+  }
+
+  else if (main === "CONNECT") {
+    const a = parseInt(parts[1]);
+    const b = parseInt(parts[2]);
+
+    dnaConnections.push([a, b]);
+    out.textContent += `Połączono ${a} ↔ ${b}\n`;
+  }
+
+  // ===============================
+  //   NIEZNANA KOMENDA
+  // ===============================
+  else {
+    out.textContent += `Nieznana komenda: ${cmd}\n`;
+  }
+
+  out.scrollTop = out.scrollHeight;
+}
+// ===============================
+//   TERMINAL DNA — KOMENDY
+// ===============================
+function runTerminalCommand(cmd) {
+  const out = document.getElementById("bottomPanelOutput");
+
+  const parts = cmd.trim().split(" ");
+  const main = parts[0].toUpperCase();
+
+  // --- PODSTAWOWE KOMENDY ---
+  if (main === "HELP") {
+    out.textContent +=
+      "Dostępne komendy:\n" +
+      "HELP – lista komend\n" +
+      "CLEAR – wyczyść terminal\n" +
+      "PING – test działania\n" +
+      "TIME – aktualny czas\n" +
+      "NUC – nukleotyd zegara\n" +
+      "INFO X – informacje o chromosomie\n" +
+      "HIGHLIGHT X – podświetl chromosom (czerwony)\n" +
+      "BLUE X – podświetl chromosom (niebieski)\n" +
+      "STATE X Y – ustaw stan chromosomu (0/1)\n" +
+      "NUCSET X A/C/G/T/U – ustaw nukleotyd chromosomu\n" +
+      "RESETGRID – reset siatki chromosomów\n" +
+      "SUM X Y [Z...] – sumowanie chromosomów\n" +
+      "TRACE X – wejścia/wyjścia chromosomu\n" +
+      "PATH A B – znajdź ścieżkę A→B\n" +
+      "FLOW X – wyślij nukleotyd przez węzeł DNA-Flow\n" +
+      "COLOR X R G B – ustaw kolor węzła DNA-Flow\n" +
+      "CONNECT A B – połącz węzły DNA-Flow\n\n";
+  }
+
+  else if (main === "CLEAR") {
+    out.textContent = "";
+  }
+
+  else if (main === "PING") {
+    out.textContent += "PONG\n";
+  }
+
+  else if (main === "TIME") {
+    out.textContent += new Date().toLocaleTimeString() + "\n";
+  }
+
+  else if (main === "NUC") {
+    out.textContent += `Nukleotyd zegara: ${nucleotideByClock()}\n`;
+  }
+
+  // ===============================
+  //   SIATKA 27 CHROMOSOMÓW
+  // ===============================
+
+  else if (main === "INFO") {
+    const id = parseInt(parts[1]);
+    if (!grid.chromosomes.has(id)) {
+      out.textContent += `Chromosom ${id} nie istnieje\n`;
+      return;
+    }
+
+    const chr = grid.chromosomes.get(id);
+    const bin = binaryMap[id] || "?";
+    const letter = letterMap[id] || "?";
+    const nuc = chr.nucleotide || "brak";
+
+    out.textContent +=
+      `ID: ${id}\n` +
+      `Binarnie: ${bin}\n` +
+      `Litera: ${letter}\n` +
+      `Stan: ${chr.state}\n` +
+      `Wejścia: ${chr.inputs.join(", ") || "brak"}\n` +
+      `Wyjścia: ${chr.outputs.join(", ") || "brak"}\n` +
+      `Nukleotyd: ${nuc}\n\n`;
+  }
+
+  else if (main === "HIGHLIGHT") {
+    const id = parseInt(parts[1]);
+    if (!grid.chromosomes.has(id)) {
+      out.textContent += `Chromosom ${id} nie istnieje\n`;
+      return;
+    }
+
+    for (const [cid, chr] of grid.chromosomes) chr.highlight = false;
+    grid.chromosomes.get(id).highlight = true;
+
+    out.textContent += `Podświetlono chromosom ${id}\n`;
+  }
+
+  else if (main === "BLUE") {
+    const id = parseInt(parts[1]);
+    if (!grid.chromosomes.has(id)) {
+      out.textContent += `Chromosom ${id} nie istnieje\n`;
+      return;
+    }
+
+    for (const [cid, chr] of grid.chromosomes) chr.highlightBlue = false;
+    grid.chromosomes.get(id).highlightBlue = true;
+
+    out.textContent += `Podświetlono chromosom ${id} (niebieski)\n`;
+  }
+
+  else if (main === "STATE") {
+    const id = parseInt(parts[1]);
+    const val = parseInt(parts[2]);
+
+    if (!grid.chromosomes.has(id)) {
+      out.textContent += `Chromosom ${id} nie istnieje\n`;
+      return;
+    }
+
+    if (val !== 0 && val !== 1) {
+      out.textContent += "Stan musi być 0 lub 1\n";
+      return;
+    }
+
+    grid.chromosomes.get(id).state = val;
+    out.textContent += `Ustawiono stan chromosomu ${id} na ${val}\n`;
+  }
+
+  else if (main === "NUCSET") {
+    const id = parseInt(parts[1]);
+    const nuc = parts[2]?.toUpperCase();
+
+    if (!grid.chromosomes.has(id)) {
+      out.textContent += `Chromosom ${id} nie istnieje\n`;
+      return;
+    }
+
+    if (!["A","C","G","T","U"].includes(nuc)) {
+      out.textContent += "Nukleotyd musi być A/C/G/T/U\n";
+      return;
+    }
+
+    grid.chromosomes.get(id).nucleotide = nuc;
+    out.textContent += `Ustawiono nukleotyd chromosomu ${id} na ${nuc}\n`;
+  }
+
+  else if (main === "RESETGRID") {
+    for (const [id, chr] of grid.chromosomes) {
+      chr.highlight = false;
+      chr.highlightBlue = false;
+      chr.order = 0;
+      chr.nucleotide = null;
+    }
+
+    out.textContent += "Zresetowano siatkę chromosomów\n";
+  }
+
+  // ===============================
+  //   SUMOWANIE
+  // ===============================
+
+  else if (main === "SUM") {
+    if (parts.length < 3) {
+      out.textContent += "Użycie: SUM X Y [Z ...]\n";
+      return;
+    }
+
+    const ids = parts.slice(1).map(n => parseInt(n)).filter(n => !isNaN(n));
+    if (ids.length === 0) {
+      out.textContent += "Brak poprawnych ID chromosomów\n";
+      return;
+    }
+
+    const binaries = ids.map(id => binaryMap[id] || "0");
+    const letters = ids.map(id => letterMap[id] || "?");
+
+    let desc = "";
+    for (let i = 0; i < ids.length; i++) {
+      desc += `${ids[i]} (${binaries[i]} → ${letters[i]})`;
+      if (i < ids.length - 1) desc += " + ";
+    }
+
+    const maxLen = Math.max(...binaries.map(v => v.length));
+    const padded = binaries.map(v => v.padStart(maxLen, "0"));
+    let carry = 0, result = "";
+
+    for (let i = maxLen - 1; i >= 0; i--) {
+      let s = carry;
+      for (const v of padded) s += Number(v[i]);
+      result = (s % 2) + result;
+      carry = Math.floor(s / 2);
+    }
+    if (carry > 0) result = carry + result;
+    result = result.replace(/^0+/, "") || "0";
+
+    const dec = parseInt(result, 2);
+    const letter = letterMap[dec] || "?";
+
+    out.textContent +=
+      desc + "\n" +
+      `= ${result} (${dec}) → ${letter}\n\n`;
+
+    for (const [id, chr] of grid.chromosomes) chr.highlightBlue = false;
+    if (grid.chromosomes.has(dec)) {
+      grid.chromosomes.get(dec).highlightBlue = true;
+    }
+  }
+
+  // ===============================
+  //   TRACE
+  // ===============================
+
+  else if (main === "TRACE") {
+    const id = parseInt(parts[1]);
+    if (!grid.chromosomes.has(id)) {
+      out.textContent += `Chromosom ${id} nie istnieje\n`;
+      return;
+    }
+
+    const chr = grid.chromosomes.get(id);
+    out.textContent +=
+      `TRACE ${id}:\n` +
+      `Wejścia: ${chr.inputs.join(", ") || "brak"}\n` +
+      `Wyjścia: ${chr.outputs.join(", ") || "brak"}\n\n`;
+  }
+
+  // ===============================
+  //   PATH
+  // ===============================
+
+  else if (main === "PATH") {
+    const start = parseInt(parts[1]);
+    const target = parseInt(parts[2]);
+
+    if (!grid.chromosomes.has(start) || !grid.chromosomes.has(target)) {
+      out.textContent += "Niepoprawne ID chromosomów\n";
+      return;
+    }
+
+    const queue = [start];
+    const visited = new Set([start]);
+    const parent = {};
+
+    while (queue.length > 0) {
+      const cur = queue.shift();
+      if (cur === target) break;
+
+      const chr = grid.chromosomes.get(cur);
+      const neigh = [...chr.outputs, ...chr.inputs];
+
+      for (const n of neigh) {
+        if (!visited.has(n)) {
+          visited.add(n);
+          parent[n] = cur;
+          queue.push(n);
+        }
+      }
+    }
+
+    if (!visited.has(target)) {
+      out.textContent += `Brak ścieżki ${start} → ${target}\n`;
+      return;
+    }
+
+    const path = [];
+    let cur = target;
+    while (cur !== undefined) {
+      path.push(cur);
+      cur = parent[cur];
+    }
+    path.reverse();
+
+    out.textContent += `Ścieżka ${start} → ${target}: ${path.join(" → ")}\n\n`;
+
+    for (const [id, chr] of grid.chromosomes) {
+      chr.highlight = false;
+      chr.highlightBlue = false;
+    }
+    path.forEach(id => {
+      if (grid.chromosomes.has(id)) {
+        grid.chromosomes.get(id).highlight = true;
+      }
+    });
+  }
+
+  // ===============================
+  //   DNA FLOW
+  // ===============================
+
+  else if (main === "FLOW") {
+    const id = parseInt(parts[1]);
+    if (!dnaNodes.has(id)) {
+      out.textContent += `Nie ma węzła ${id}\n`;
+      return;
+    }
+
+    dnaParticles.push({
+      x1: dnaNodes.get(id).x,
+      y1: dnaNodes.get(id).y,
+      x2: dnaNodes.get(id).x,
+      y2: dnaNodes.get(id).y - 20,
+      progress: 0,
+      nuc: nucleotideByClock()
+    });
+
+    out.textContent += `Wysłano nukleotyd przez ${id}\n`;
+  }
+
+  else if (main === "COLOR") {
+    const id = parseInt(parts[1]);
+    const r = parts[2], g = parts[3], b = parts[4];
+
+    if (!dnaNodes.has(id)) {
+      out.textContent += `Nie ma węzła ${id}\n`;
+      return;
+    }
+
+    dnaNodes.get(id).color = `rgb(${r},${g},${b})`;
+    out.textContent += `Kolor ${id} ustawiony\n`;
+  }
+
+  else if (main === "CONNECT") {
+    const a = parseInt(parts[1]);
+    const b = parseInt(parts[2]);
+
+    dnaConnections.push([a, b]);
+    out.textContent += `Połączono ${a} ↔ ${b}\n`;
+  }
+
+  // ===============================
+  //   NIEZNANA KOMENDA
+  // ===============================
+  else {
+    out.textContent += `Nieznana komenda: ${cmd}\n`;
+  }
+
+  out.scrollTop = out.scrollHeight;
+}
+
+
+// PROSTA LOGIKA TERMINALA
+document.getElementById("bottomPanelRun").onclick = () => {
+  const input = document.getElementById("bottomPanelInput").value.trim();
+  const out = document.getElementById("bottomPanelOutput");
+
+  if (!input) return;
+
+  out.textContent += "> " + input + "\n";
+  runTerminalCommand(input);   // ⭐ TO JEST KLUCZOWE ⭐
+  out.scrollTop = out.scrollHeight;
+};
+
+</script>
+</body>
+</html>
