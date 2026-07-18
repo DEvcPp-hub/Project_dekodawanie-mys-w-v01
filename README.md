@@ -1,1 +1,1 @@
-# Project_dekodawanie-mys-w-v01
+Myśle że z Manuala pdf wiecej się dowiecie na wszystkie pytania mogę odpowiedzieć i wytłumaczyc jak działa i po co pierwsze zdjęcie bez pdf pokazuje jak muj język z aio pisanby jako przejścia bitowe pokazuje jak odkodowac dane np z obrazka jpg
